@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 GameSphere - Tournament Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/postprocessing@6.34.3/build/postprocessing.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/vanta/dist/vanta.waves.min.js"></script>
+    <style>
+        @keyframes glowing {
+            0% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--neon-blue); }
+            50% { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px var(--neon-purple); }
+            100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--neon-blue); }
+        }
+        .text-neon-glow {
+            animation: glowing 3s ease-in-out infinite;
+        }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: #0a0a0a;
+            color: #f0f0f0;
+        }
+        *{
+            user-select: none;
+        }
+        .modal {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        .modal-content {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+        .hidden {
+            display: none !important;
+        }
+
+        /* special btn  */
+        @property --angle {
+          syntax: '<angle>';
+          initial-value: 0deg;
+          inherits: true;
+        }
+
+        @keyframes rotate {
+            to {
+                --angle: 360deg;
+            }
+        }
+
+        .shiny-border-button {
+            position: relative;
+            cursor: pointer;
+            outline: none;
+            border: none;
+            padding: 2px; 
+            background: transparent;
+            border-radius: 0.85rem;
+            animation: rotate 3s linear infinite;
+        }
+
+        .shiny-border-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            border-radius: inherit;
+            background: conic-gradient(
+                from calc(-1 * var(--angle)) at 50% 50%,
+                transparent 0%,
+                rgb(253, 253, 253) 15%, 
+                transparent 30%
+            );
+        }
+
+        .shiny-border-button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            border-radius: inherit;
+            background: conic-gradient(
+                from calc(-1 * var(--angle)) at 50% 50%,
+                transparent 0%,
+                rgba(255, 255, 255, 0.8) 15%,
+                transparent 40%
+            );
+            filter: blur(25px);
+        }
+/*background of the button*/
+        .shiny-border-button span {
+            display: block;
+            position: relative;
+            z-index: 1;
+            padding: 0.5rem 1rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: white;
+            background-color:hsla(0,0%,0%,1);
+            background-image:
+           radial-gradient(at 52% 20%, rgba(255,255,255,0.05) 0px, transparent 50%),
+  radial-gradient(at 90% 9%, rgba(200,200,200,0.1) 0px, transparent 50%),
+  radial-gradient(at 0% 50%, rgba(180,180,180,0.1) 0px, transparent 50%),
+  radial-gradient(at 61% 55%, rgba(150,150,150,0.07) 0px, transparent 50%),
+  radial-gradient(at 0% 100%, rgba(120,120,120,0.08) 0px, transparent 50%),
+  radial-gradient(at 80% 100%, rgba(90,90,90,0.05) 0px, transparent 50%),
+  radial-gradient(at 2% 3%, rgba(220,220,220,0.09) 0px, transparent 50%);
+
+            border-radius: calc(0.85rem - 2px);
+            border-color: hsla(338,0%,62%,.005);
+            border-top-style: groove;
+            border-right-style: groove;
+            transition: color 0.9s, background-color 0.9s;
+            isolation: isolate;
+            overflow: hidden;
+        }
+
+        .shiny-border-button span::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: conic-gradient(
+                from calc(1 * var(--angle)) at 0% 110%,
+                transparent 25%,
+                rgba(136, 136, 136, 0.45) 45%,
+                transparent 90%
+            );
+            mix-blend-mode: color-dodge;
+        }
+</style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'dm': ['DM Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        'neon-green': '#39ff14',
+                        'neon-blue': '#00f5ff',
+                        'neon-purple': '#bf00ff',
+                        'dark-bg': '#0a0a0a',
+                        'dark-card': '#1a1a1a',
+                        'dark-border': '#333333',
+                    }
+                }
+            }
+        };
+        
+    </script>
+    <style>
+        #vanta-bg {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1; /* behind content */
+  }.grainy-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* so it doesn’t block clicks */
+  background-image: url('https://transparenttextures.com/patterns/brilliant.png'); /* grain texture */
+  opacity: 0.5; /* adjust strength */
+  mix-blend-mode: overlay; /* optional for better effect */
+}
+
+    </style>
+</head>
+    <body class="bg-dark-bg text-gray-100 antialiased"><div id="vanta-bg" class="absolute inset-0 -z-20" style="filter: blur(5px);">
+  <div class="grainy-overlay"></div>
+</div>
+
+    <!-- Header -->
+  <header class="py-4 md:py-6 px-4 md:px-8 flex flex-col md:flex-row justify-between items-center z-[9999] sticky top-0 backdrop-blur-sm  transition-all duration-300">
+ <div class="flex items-center space-x-2 mb-3 md:mb-0">
+  <i class="fa-solid fa-gamepad text-2xl text-neon-green"></i>
+  <h1 class="text-2xl md:text-3xl font-bold gradient-glow">
+    GameSphere
+  </h1>
+</div>
+
+    <nav class="w-full md:w-auto">
+        <ul class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4 lg:space-x-8 w-full md:w-auto">
+            <li><a href="#tournaments" class="text-gray-300 hover:text-white transition-colors duration-300">Tournaments</a></li>
+            <li id="nav-auth-links" class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4 w-full md:w-auto">
+                <button onclick="openModal('loginModal')" class="bg-neon-green text-dark-bg px-4 py-2 rounded-lg font-bold hover:bg-neon-green/80 transition-colors duration-300 w-full md:w-auto">Log In</button>
+                <button onclick="openModal('registerModal')" class="bg-neon-blue text-dark-bg px-4 py-2 rounded-lg font-bold hover:bg-neon-blue/80 transition-colors duration-300 w-full md:w-auto">Sign Up</button>
+            </li>
+            <li id="nav-user-links" class="hidden flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4 w-full md:w-auto">
+                <span id="welcome-message" class="text-gray-300"></span>
+                <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-500 transition-colors duration-300 w-full md:w-auto">Log Out</button>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Message Box -->
+        <div id="messageBox" class="fixed top-20 left-1/2 -translate-x-1/2 hidden z-[100] p-4 rounded-lg text-center font-bold"></div>
+
+        <!-- Admin Panel Section -->
+        <section id="admin-panel" class="hidden mt-8">
+            <h2 class="text-4xl md:text-5xl font-bold text-center text-neon-blue text-neon-glow mb-8">Admin Dashboard</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-dark-card p-6 rounded-xl border border-dark-border text-center">
+                    <div class="text-4xl font-bold text-neon-green" id="stat-tournaments">0</div>
+                    <div class="text-gray-400 mt-2">Total Tournaments</div>
+                </div>
+                <div class="bg-dark-card p-6 rounded-xl border border-dark-border text-center">
+                    <div class="text-4xl font-bold text-neon-blue" id="stat-players">0</div>
+                    <div class="text-gray-400 mt-2">Total Players</div>
+                </div>
+                <div class="bg-dark-card p-6 rounded-xl border border-dark-border text-center">
+                    <div class="text-4xl font-bold text-neon-purple" id="stat-registrations">0</div>
+                    <div class="text-gray-400 mt-2">Total Registrations</div>
+                </div>
+            </div>
+
+            <!-- Admin Navigation -->
+            <div class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4 mb-8">
+                <button onclick="showAdminSection('tournament-management')" class="bg-neon-green text-dark-bg px-6 py-3 rounded-full font-bold shadow-lg transition-transform transform hover:scale-105">Manage Tournaments</button>
+                <button onclick="showAdminSection('player-management')" class="bg-neon-blue text-dark-bg px-6 py-3 rounded-full font-bold shadow-lg transition-transform transform hover:scale-105">Manage Players</button>
+                <button onclick="showAdminSection('registration-management')" class="bg-neon-purple text-dark-bg px-6 py-3 rounded-full font-bold shadow-lg transition-transform transform hover:scale-105">Manage Registrations</button>
+            </div>
+            
+            <!-- Admin Content Sections -->
+            <div id="admin-content" class="bg-dark-card p-6 rounded-xl border border-dark-border">
+                <div id="tournament-management" class="admin-section">
+                    <h3 class="text-2xl font-bold text-neon-green mb-4">Tournaments <button onclick="openModal('addTournamentModal')" class="ml-4 bg-neon-green text-dark-bg px-3 py-1 rounded-full text-sm font-semibold hover:bg-neon-green/80 transition-colors">+</button></h3>
+                    <table class="min-w-full divide-y divide-gray-700">
+                        <thead class="bg-gray-800">
+                            <tr>
+                                <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Title</th>
+                                <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                                <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Prize</th>
+                                <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-tournaments-list" class="divide-y divide-gray-700">
+                            <!-- Tournament rows will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="player-management" class="admin-section hidden">
+                    <h3 class="text-2xl font-bold text-neon-blue mb-4">Players</h3>
+                    <table class="min-w-full divide-y divide-gray-700">
+                        <thead class="bg-gray-800">
+                            <tr>
+    <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Gaming ID</th>
+    <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Full Name</th>
+    <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Email</th>
+    <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Phone</th>
+</tr>
+
+                        </thead>
+                        <tbody id="admin-players-list" class="divide-y divide-gray-700">
+                            <!-- Player rows will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="registration-management" class="admin-section hidden">
+                    <h3 class="text-2xl font-bold text-neon-purple mb-4">Registrations</h3>
+                    <table class="min-w-full divide-y divide-gray-700">
+                        <thead class="bg-gray-800">
+                           <tr>
+    <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Tournament</th>
+    <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Player</th>
+    <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Payment Status</th>
+    <!-- NEW: Actions column for admin checkmarking -->
+    <th scope="col" class="py-3 px-6 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+</tr>
+
+                        </thead>
+                        <tbody id="admin-registrations-list" class="divide-y divide-gray-700">
+                            <!-- Registration rows will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Section -->
+        <section id="main-content">
+            <!-- Hero Section -->
+            <section class="text-center py-16 md:py-24">
+     <h2 class="text-4xl md:text-7xl font-bold leading-tight mb-4 gradient-glow">
+  Unleash Your Gaming Potential
+</h2>
+
+<style>
+.gradient-glow {
+  background: linear-gradient(to bottom, #fff, #888); /* white to grey */
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 8px rgba(255,255,255,0.6); /* soft glow */
+}
+</style>
+
+                <p class="text-lg md:text-xl text-gray-400 mb-8">Join the ultimate gaming tournaments and compete for glory and incredible prizes.</p>
+                <button onclick="openModal('registerModal')" class="shiny-border-button"><span>Join Now</span></button>
+
+            </section>
+
+            <!-- Tournaments Section -->
+            <section id="tournaments" class="py-12">
+                <h2 class="text-4xl md:text-5xl font-bold text-center text-neon-blue text-neon-glow mb-8">Upcoming Tournaments</h2>
+                <div id="tournament-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Tournament cards will be dynamically added here -->
+                </div>
+            </section>
+        </section>
+
+    </main>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal fixed inset-0 flex items-center justify-center p-4 hidden z-50">
+        <div class="modal-content bg-dark-card border border-dark-border p-8 rounded-xl max-w-lg w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-white">Log In</h3>
+                <button onclick="closeModal('loginModal')" class="text-gray-400 hover:text-white transition-colors duration-300">&times;</button>
+            </div>
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label for="loginEmail" class="block text-gray-300 mb-2">Email</label>
+                    <input type="email" id="loginEmail" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue">
+                </div>
+                <div class="mb-6">
+                    <label for="loginPassword" class="block text-gray-300 mb-2">Password</label>
+                    <input type="password" id="loginPassword" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue">
+                </div>
+                <button type="submit" class="w-full bg-neon-green text-dark-bg py-3 rounded-lg font-bold hover:bg-neon-green/80 transition-colors duration-300">Log In</button>
+                <div id="loginError" class="text-red-500 text-sm mt-4 text-center hidden"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="registerModal" class="modal fixed inset-0 flex items-center justify-center p-4 hidden z-50">
+        <div class="modal-content bg-dark-card border border-dark-border p-8 rounded-xl max-w-lg w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-white">Sign Up</h3>
+                <button onclick="closeModal('registerModal')" class="text-gray-400 hover:text-white transition-colors duration-300">&times;</button>
+            </div>
+            <form id="registerForm">
+                <div class="mb-4">
+                    <label for="registerGamingId" class="block text-gray-300 mb-2">Gaming ID</label>
+                    <input type="text" id="registerGamingId" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue">
+                </div>
+                <div class="mb-4">
+                    <label for="registerName" class="block text-gray-300 mb-2">Full Name</label>
+                    <input type="text" id="registerName" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue">
+                </div>
+                <div class="mb-4">
+                    <label for="registerEmail" class="block text-gray-300 mb-2">Email</label>
+                    <input type="email" id="registerEmail" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue">
+                </div>
+                <div class="mb-4">
+    <label for="registerPassword" class="block text-gray-300 mb-2">Password</label>
+    <input type="password" id="registerPassword" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue">
+</div>
+<!-- NEW: Phone Number Field -->
+<div class="mb-4">
+    <label for="registerPhoneNumber" class="block text-gray-300 mb-2">Phone Number</label>
+    <input type="tel" id="registerPhoneNumber" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue" placeholder="Enter phone number">
+</div>
+<!-- NEW: Game UID Field -->
+
+                <button type="submit" class="w-full bg-neon-blue text-dark-bg py-3 rounded-lg font-bold hover:bg-neon-blue/80 transition-colors duration-300">Register</button>
+                <div id="registerError" class="text-red-500 text-sm mt-4 text-center hidden"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Tournament Modal -->
+    <div id="addTournamentModal" class="modal fixed inset-0 flex items-center justify-center p-4 hidden z-50">
+        <div class="modal-content bg-dark-card border border-dark-border p-8 rounded-xl max-w-lg w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-white" id="modal-title">Add Tournament</h3>
+                <button onclick="closeModal('addTournamentModal')" class="text-gray-400 hover:text-white transition-colors duration-300">&times;</button>
+            </div>
+            <form id="tournamentForm">
+                <input type="hidden" id="tournamentId">
+                <div class="mb-4">
+                    <label for="title" class="block text-gray-300 mb-2">Title</label>
+                    <input type="text" id="title" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue">
+                </div>
+                <div class="mb-4">
+                    <label for="game" class="block text-gray-300 mb-2">Game</label>
+                    <input type="text" id="game" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue">
+                </div>
+                <div class="mb-4">
+                    <label for="platform" class="block text-gray-300 mb-2">Platform</label>
+                    <input type="text" id="platform" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue">
+                </div>
+                <div class="mb-4">
+                    <label for="start_time" class="block text-gray-300 mb-2">Start Date/Time</label>
+                    <input type="datetime-local" id="start_time" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue">
+                </div>
+                <div class="mb-4">
+                    <label for="end_time" class="block text-gray-300 mb-2">End Date/Time</label>
+                    <input type="datetime-local" id="end_time" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue">
+                </div>
+                <div class="mb-4">
+                    <label for="prize_pool" class="block text-gray-300 mb-2">Prize Pool (₹)</label>
+                    <input type="number" id="prize_pool" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue">
+                </div>
+                <div class="mb-6">
+                    <label for="description" class="block text-gray-300 mb-2">Description</label>
+                    <textarea id="description" rows="3" class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neon-blue"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-neon-green text-dark-bg py-3 rounded-lg font-bold hover:bg-neon-green/80 transition-colors duration-300">Save Tournament</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Registration Confirmation Modal -->
+    <div id="registerConfirmationModal" class="modal fixed inset-0 flex items-center justify-center p-4 hidden z-50">
+        <div class="modal-content bg-dark-card border border-dark-border p-8 rounded-xl max-w-lg w-full">
+            <h3 class="text-2xl font-bold text-white mb-4">Confirm Registration</h3>
+            <p class="text-gray-300 mb-4">You are about to register for the tournament: <span id="reg-tournament-title" class="font-bold text-neon-green"></span>.</p>
+            <p class="text-gray-300 mb-6">Registration Fee: <span id="reg-fee" class="font-bold text-neon-blue"></span></p>
+            <div class="flex justify-end space-x-4">
+                <button onclick="closeModal('registerConfirmationModal')" class="bg-gray-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-gray-500 transition-colors duration-300">Cancel</button>
+                <button onclick="proceedToPayment()" class="bg-neon-green text-dark-bg px-4 py-2 rounded-lg font-bold hover:bg-neon-green/80 transition-colors duration-300">Proceed to Payment</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        VANTA.WAVES({
+    el: "#vanta-bg",
+    mouseControls: true,
+    touchControls: true,
+    gyroControls: false,
+    minHeight: 200.00,
+    minWidth: 200.00,
+    scale: 1.00,
+    scaleMobile: 1.00,
+    color: 0x000000,
+    shininess: 150.00,  
+    waveHeight: 20.50,
+    waveSpeed: 0.70,
+    zoom: 0.77
+  });
+    </script>
+    <script>
+        const BASE_URL = "http://127.0.0.1:8000"; // or http://0.0.0.0:8000
+fetch(`${BASE_URL}/tournaments`)
+  .then(res => res.json())
+  .then(data => console.log(data));
+
+        const RZP_KEY_ID = "rzp_test_m2Y3e6T2y3y6y3"; // Hardcoded for this demo, replace with your actual key
+        const userState = {
+            token: localStorage.getItem('token'),
+            user: JSON.parse(localStorage.getItem('user')),
+            isAdmin: false,
+            currentTournamentId: null
+        };
+        const messageBox = document.getElementById('messageBox');
+
+        // --- Utility Functions ---
+        function showMessageBox(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden');
+            messageBox.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-[100] p-4 rounded-lg text-center font-bold';
+            if (type === 'success') {
+                messageBox.classList.add('bg-green-600', 'text-white');
+            } else if (type === 'error') {
+                messageBox.classList.add('bg-red-600', 'text-white');
+            } else {
+                messageBox.classList.add('bg-gray-700', 'text-white');
+            }
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000);
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function toggleAdminView(isAdmin) {
+            const adminPanel = document.getElementById('admin-panel');
+            const mainContent = document.getElementById('main-content');
+            if (isAdmin) {
+                adminPanel.classList.remove('hidden');
+                mainContent.classList.add('hidden');
+                fetchAdminStats();
+                fetchAdminTournaments();
+                fetchAdminPlayers();
+                fetchAdminRegistrations();
+            } else {
+                adminPanel.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+            }
+        }
+
+        function showAdminSection(sectionId) {
+            document.querySelectorAll('.admin-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        // --- API Calls ---
+        async function fetchTournaments() {
+            try {
+                const response = await fetch(`${BASE_URL}/tournaments`);
+                const tournaments = await response.json();
+                renderTournaments(tournaments);
+            } catch (error) {
+                showMessageBox('Failed to load tournaments. Please try again later.', 'error');
+            }
+        }
+
+        async function fetchAdminStats() {
+            try {
+                const headers = { 'Authorization': `Bearer ${userState.token}` };
+                const [tournamentsRes, playersRes, registrationsRes] = await Promise.all([
+                    fetch(`${BASE_URL}/tournaments`, { headers }),
+                    fetch(`${BASE_URL}/admin/users`, { headers }),
+                    fetch(`${BASE_URL}/admin/registrations`, { headers })
+                ]);
+                
+                const tournaments = await tournamentsRes.json();
+                const players = await playersRes.json();
+                const registrations = await registrationsRes.json();
+                
+                document.getElementById('stat-tournaments').textContent = tournaments.length;
+                document.getElementById('stat-players').textContent = players.length;
+                document.getElementById('stat-registrations').textContent = registrations.length;
+            } catch (error) {
+                showMessageBox('Failed to fetch admin stats.', 'error');
+            }
+        }
+
+        async function fetchAdminTournaments() {
+            try {
+                const response = await fetch(`${BASE_URL}/tournaments`, {
+                    headers: { 'Authorization': `Bearer ${userState.token}` }
+                });
+                const tournaments = await response.json();
+                renderAdminTournaments(tournaments);
+            } catch (error) {
+                showMessageBox('Failed to load admin tournaments.', 'error');
+            }
+        }
+
+        async function fetchAdminPlayers() {
+            try {
+                const response = await fetch(`${BASE_URL}/admin/users`, {
+                    headers: { 'Authorization': `Bearer ${userState.token}` }
+                });
+                const players = await response.json();
+                renderAdminPlayers(players);
+            } catch (error) {
+                showMessageBox('Failed to load players.', 'error');
+            }
+        }
+
+        async function fetchAdminRegistrations() {
+            try {
+                const response = await fetch(`${BASE_URL}/admin/registrations`, {
+                    headers: { 'Authorization': `Bearer ${userState.token}` }
+                });
+                const registrations = await response.json();
+                renderAdminRegistrations(registrations);
+            } catch (error) {
+                showMessageBox('Failed to load registrations.', 'error');
+            }
+        }
+        
+        // --- Rendering Functions ---
+        function renderTournaments(tournaments) {
+            const container = document.getElementById('tournament-grid');
+            container.innerHTML = '';
+            if (tournaments.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 col-span-full">No upcoming tournaments at the moment. Check back soon!</p>';
+                return;
+            }
+            tournaments.forEach(t => {
+                const card = document.createElement('div');
+                card.className = 'bg-dark-card border border-dark-border rounded-xl p-6 shadow-xl transition-transform transform hover:scale-105 hover:border-neon-green/50';
+                card.innerHTML = `
+                    <h3 class="text-2xl font-bold text-neon-green mb-2">${t.title}</h3>
+                    <p class="text-gray-400 mb-4">${t.game} - ${t.platform}</p>
+                    <div class="flex items-center space-x-2 mb-2">
+                        <i class="fa-solid fa-calendar-alt text-neon-blue"></i>
+                        <span class="text-gray-300">${new Date(t.start_time).toLocaleString()}</span>
+                    </div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fa-solid fa-trophy text-neon-purple"></i>
+                        <span class="text-lg font-bold text-neon-purple">$${t.prize_pool.toLocaleString()}</span>
+                    </div>
+                    <p class="text-gray-400 mb-6">${t.description}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-semibold text-gray-400">${t.registration_count || 0} / ${t.max_participants} registered</span>
+                        <button onclick="handleRegistration(${t.id}, '${t.title}', ${t.entry_fee})" class="bg-neon-green text-dark-bg px-5 py-2 rounded-full font-bold text-sm transition-colors duration-300 hover:bg-neon-green/80 disabled:opacity-50" ${!userState.token ? 'disabled' : ''}>${!userState.token ? 'Log in to Register' : 'Register'}</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderAdminTournaments(tournaments) {
+            const container = document.getElementById('admin-tournaments-list');
+            container.innerHTML = '';
+            tournaments.forEach(t => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-700 hover:bg-gray-800 transition-colors duration-200';
+                row.innerHTML = `
+                    <td class="py-4 px-6 whitespace-nowrap">${t.title}</td>
+                    <td class="py-4 px-6 whitespace-nowrap">${new Date(t.start_time).toLocaleDateString()}</td>
+                    <td class="py-4 px-6 whitespace-nowrap">$${t.prize_pool.toLocaleString()}</td>
+                    <td class="py-4 px-6 whitespace-nowrap">
+                        <button onclick="editTournament(${t.id})" class="text-neon-blue hover:text-white mr-2"><i class="fa-solid fa-edit"></i></button>
+                        <button onclick="deleteTournament(${t.id})" class="text-red-500 hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+       function renderAdminPlayers(players) {
+    const container = document.getElementById('admin-players-list');
+    container.innerHTML = '';
+    
+    players.forEach(p => {
+        const row = document.createElement('tr');
+        row.className = 'border-b border-gray-700 hover:bg-gray-800 transition-colors duration-200';
+        row.innerHTML = `
+            <td class="py-4 px-6 whitespace-nowrap">${p.gaming_id}</td>
+            <td class="py-4 px-6 whitespace-nowrap">${p.full_name}</td>
+            <td class="py-4 px-6 whitespace-nowrap">${p.email}</td>
+            <td class="py-4 px-6 whitespace-nowrap">${p.phone_number || 'N/A'}</td>
+            <td class="py-4 px-6 whitespace-nowrap">${p.game_uid || 'N/A'}</td>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function renderAdminRegistrations(registrations) {
+    const container = document.getElementById('admin-registrations-list');
+    container.innerHTML = '';
+    registrations.forEach(r => {
+        const row = document.createElement('tr');
+        row.className = 'border-b border-gray-700 hover:bg-gray-800 transition-colors duration-200';
+        row.innerHTML = `
+            <td class="py-4 px-6 whitespace-nowrap">${r.tournament_title}</td>
+            <td class="py-4 px-6 whitespace-nowrap">(${r.user_gaming_id})</td>
+            <td class="py-4 px-6 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${r.is_paid ? 'bg-green-600' : 'bg-red-600'} text-white">
+                    ${r.is_paid ? "Paid" : "Unpaid"}
+                </span>
+            </td>
+            <td class="py-4 px-6 whitespace-nowrap">
+                <button type="button" onclick="toggleRegistrationPaid(${r.id})" class="bg-neon-green text-dark-bg px-3 py-1 rounded-full text-sm font-semibold hover:bg-neon-green/80 transition-colors">
+                    <i class="fa-solid fa-sync-alt mr-1"></i> Toggle Paid
+                </button>
+            </td>
+        `;
+        container.appendChild(row);
+    });
+}
+
+// Toggle paid/unpaid status for a registration
+async function toggleRegistrationPaid(registrationId) {
+    try {
+        const response = await fetch(`${BASE_URL}/admin/registrations/${registrationId}/verify_payment`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${userState.token}`
+            }
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to update payment status');
+        }
+        showMessageBox('Payment status updated!', 'success');
+        fetchAdminRegistrations();
+        fetchAdminStats();
+    } catch (error) {
+        showMessageBox(error.message, 'error');
+    }
+}
+// NEW: Function to mark registration as paid
+async function markRegistrationPaid(registrationId) {
+    try {
+        const response = await fetch(`${BASE_URL}/admin/registrations/${registrationId}/verify_payment`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${userState.token}`
+            }
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to mark payment');
+        }
+        
+        showMessageBox('Payment marked as verified successfully!', 'success');
+fetchAdminRegistrations(); // <-- refreshes the UI
+    fetchAdminStats(); 
+    } catch (error) {
+        showMessageBox(error.message, 'error');
+    }
+}
+
+
+        // --- Event Handlers & Logic ---
+        function checkLoginStatus() {
+            if (userState.token && userState.user) {
+                document.getElementById('nav-auth-links').classList.add('hidden');
+                document.getElementById('nav-user-links').classList.remove('hidden');
+                document.getElementById('welcome-message').textContent = `Welcome, ${userState.user.full_name}!`;
+                userState.isAdmin = userState.user.is_admin;
+            } else {
+                document.getElementById('nav-auth-links').classList.remove('hidden');
+                document.getElementById('nav-user-links').classList.add('hidden');
+                userState.isAdmin = false;
+            }
+            toggleAdminView(userState.isAdmin);
+        }
+
+        async function login(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('loginError');
+
+            try {
+                const response = await fetch(`${BASE_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ username: email, password: password })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Login failed');
+                }
+
+                const data = await response.json();
+                localStorage.setItem('token', data.access_token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                userState.token = data.access_token;
+                userState.user = data.user;
+                showMessageBox('Logged in successfully!', 'success');
+                closeModal('loginModal');
+                errorEl.classList.add('hidden');
+                checkLoginStatus();
+                fetchTournaments(); // Refresh the tournament list with login status
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+async function register(e) {
+    e.preventDefault();
+
+    const gaming_id = document.getElementById('registerGamingId').value;
+    const name = document.getElementById('registerName').value;
+    const password = document.getElementById('registerPassword').value;
+    const email = document.getElementById('registerEmail').value;
+    const phoneNumber = document.getElementById('registerPhoneNumber').value;
+    // const gameUid = document.getElementById('registerGameUid').value;
+
+    const errorEl = document.getElementById('registerError');
+
+    try {
+        const response = await fetch(`${BASE_URL}/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                gaming_id,
+                full_name: name,
+                email,
+                password,
+                phone_number: phoneNumber || null,
+                // game_uid: gameUid || null
+            })
+        });
+
+    if (!response.ok) {
+    let errorText;
+    try {
+        const errorData = await response.json();
+        errorText = errorData.message || JSON.stringify(errorData);
+    } catch {
+        errorText = await response.text(); // fallback to raw text
+    }
+    throw new Error(errorText || 'Registration failed');
+}
+
+                // NEW: Enhanced success handling
+        showMessageBox('Registration successful! Please log in with your credentials.', 'success');
+        closeModal('registerModal');
+        errorEl.classList.add('hidden');
+        
+        // Clear the registration form
+        document.getElementById('registerForm').reset();
+        
+        // Wait a moment for the success message to show, then open login modal
+        setTimeout(() => {
+            openModal('loginModal');
+            // Pre-fill the email field in login form for convenience
+            document.getElementById('loginEmail').value = email;
+        }, 1500);
+
+    } catch (error) {
+        errorEl.textContent = error.message;
+        errorEl.classList.remove('hidden');
+    }
+}
+
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            userState.token = null;
+            userState.user = null;
+            userState.isAdmin = false;
+            showMessageBox('Logged out successfully!', 'info');
+            checkLoginStatus();
+            fetchTournaments();
+        }
+
+        function handleRegistration(tournamentId, tournamentTitle, entryFee) {
+            if (!userState.token) {
+                showMessageBox('Please log in to register for a tournament.', 'error');
+                openModal('loginModal');
+                return;
+            }
+            if (entryFee > 0) {
+                userState.currentTournamentId = tournamentId;
+                document.getElementById('reg-tournament-title').textContent = tournamentTitle;
+                document.getElementById('reg-fee').textContent = `$${entryFee}`;
+                openModal('registerConfirmationModal');
+            } else {
+                registerForTournament(tournamentId, 0);
+            }
+        }
+
+        async function proceedToPayment() {
+            closeModal('registerConfirmationModal');
+            const tournamentId = userState.currentTournamentId;
+            try {
+                const response = await fetch(`${BASE_URL}/create_order/${tournamentId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${userState.token}` }
+                });
+                const order = await response.json();
+                if (!response.ok) throw new Error(order.detail || 'Failed to create order');
+
+                const options = {
+                    key: RZP_KEY_ID,
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: "GameSphere",
+                    description: "Tournament Registration",
+                    order_id: order.id,
+                    handler: async function (response) {
+                        try {
+                            const verifyResponse = await fetch(`${BASE_URL}/verify_payment`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${userState.token}`
+                                },
+                                body: JSON.stringify({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    tournament_id: tournamentId
+                                })
+                            });
+                            const verifyResult = await verifyResponse.json();
+                            if (verifyResponse.ok) {
+                                showMessageBox('Payment successful and registration complete!', 'success');
+                                fetchTournaments();
+                            } else {
+                                throw new Error(verifyResult.detail || 'Payment verification failed');
+                            }
+                        } catch (error) {
+                            showMessageBox(error.message, 'error');
+                        }
+                    },
+                    theme: { color: "#39ff14" }
+                };
+                const rzp1 = new Razorpay(options);
+                rzp1.open();
+            } catch (error) {
+                showMessageBox(error.message, 'error');
+            }
+        }
+
+        async function registerForTournament(tournamentId, amount) {
+            try {
+                const response = await fetch(`${BASE_URL}/register_tournament/${tournamentId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${userState.token}` }
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Registration failed.');
+                }
+                showMessageBox('Registration successful!', 'success');
+                fetchTournaments();
+            } catch (error) {
+                showMessageBox(error.message, 'error');
+            }
+        }
+
+        async function addOrUpdateTournament(e) {
+            e.preventDefault();
+            const tournamentId = document.getElementById('tournamentId').value;
+            const method = tournamentId ? 'PUT' : 'POST';
+            const url = tournamentId ? `${BASE_URL}/admin/tournaments/${tournamentId}` : `${BASE_URL}/admin/tournaments`;
+            
+            const formData = {
+                title: document.getElementById('title').value,
+                game: document.getElementById('game').value,
+                platform: document.getElementById('platform').value,
+                start_time: document.getElementById('start_time').value,
+                end_time: document.getElementById('end_time').value,
+                prize_pool: parseFloat(document.getElementById('prize_pool').value),
+                description: document.getElementById('description').value,
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userState.token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to save tournament');
+                }
+                
+                showMessageBox(`Tournament ${tournamentId ? 'updated' : 'added'} successfully!`, 'success');
+                closeModal('addTournamentModal');
+                fetchAdminTournaments();
+                fetchTournaments(); // Refresh public list
+            } catch (error) {
+                showMessageBox(error.message, 'error');
+            }
+        }
+
+        async function editTournament(id) {
+            try {
+                const response = await fetch(`${BASE_URL}/tournaments/${id}`, {
+                    headers: { 'Authorization': `Bearer ${userState.token}` }
+                });
+                const tournament = await response.json();
+                
+                document.getElementById('modal-title').textContent = 'Edit Tournament';
+                document.getElementById('tournamentId').value = tournament.id;
+                document.getElementById('title').value = tournament.title;
+                document.getElementById('game').value = tournament.game;
+                document.getElementById('platform').value = tournament.platform;
+                document.getElementById('start_time').value = new Date(tournament.start_time).toISOString().substring(0, 16);
+                document.getElementById('end_time').value = new Date(tournament.end_time).toISOString().substring(0, 16);
+                document.getElementById('prize_pool').value = tournament.prize_pool;
+                document.getElementById('description').value = tournament.description;
+                
+                openModal('addTournamentModal');
+            } catch (error) {
+                showMessageBox('Failed to load tournament data for editing.', 'error');
+            }
+        }
+
+        async function deleteTournament(id) {
+            if (!confirm("Are you sure you want to delete this tournament?")) return;
+            try {
+                const response = await fetch(`${BASE_URL}/admin/tournaments/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${userState.token}` }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to delete tournament');
+                }
+                
+                showMessageBox('Tournament deleted successfully!', 'success');
+                fetchAdminTournaments();
+                fetchTournaments();
+            } catch (error) {
+                showMessageBox(error.message, 'error');
+            }
+        }
+
+        // --- Initial setup & Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+            fetchTournaments();
+
+            document.getElementById('loginForm').addEventListener('submit', login);
+            document.getElementById('registerForm').addEventListener('submit', register);
+            document.getElementById('tournamentForm').addEventListener('submit', addOrUpdateTournament);
+            
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
